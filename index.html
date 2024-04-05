@@ -1,115 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
 
-  <body>
-      <div id="container"></div>
-    <script>
-        var container;
-          var camera, scene, renderer;
-          var uniforms;
+<head>
+    <meta charset="UTF-8">
+    <title>PRISMCAT</title>
+    <style>
+        .button {
+            --background: #1E2235;
+            --color: #F6F8FF;
+            --shadow: rgba(0, 9, 61, 0.24);
+            --cannon-dark: #A6ACCD;
+            --cannon-light: #F6F8FF;
+            --cannon-shadow: rgba(13, 15, 24, 0.9);
+            --confetti-1: #892AB8;
+            --confetti-2: #EA4C89;
+            --confetti-3: #FFFF04;
+            --confetti-4: #4AF2FD;
+            --z-before: -6;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            border: 0;
+            background: none;
+            padding: 9px 22px 9px 16px;
+            line-height: 26px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--color);
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform var(--transform-duration, 0.4s);
+            will-change: transform;
+            transform-style: preserve-3d;
+            transform: perspective(440px) rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg)) translateZ(0);
+        }
 
-          init();
-          animate();
+        .button:hover {
+            --transform-duration: .16s;
+        }
 
-          function init() {
-              container = document.getElementById( 'container' );
+        .button.success {
+            --confetti-scale: 0;
+            --stroke-dashoffset: 15;
+        }
 
-              camera = new THREE.Camera();
-              camera.position.z = 1;
+        .button:before {
+            content: "";
+            border-radius: 12px;
+            transform: translateZ(calc(var(--z-before) * 1px));
+            background: var(--background);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
 
-              scene = new THREE.Scene();
+        .button .icon,
+        .button span {
+            display: inline-block;
+            vertical-align: top;
+            position: relative;
+            z-index: 1;
+        }
 
-              var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
+        .button .icon {
+            --z: 2px;
+            width: 24px;
+            height: 14px;
+            margin: 8px 16px 0 0;
+            transform: translate(calc(var(--icon-x, 0) * 1px), calc(var(--icon-y, 0) * 1px)) translateZ(2px);
+        }
 
-              uniforms = {
-                  time: { type: "f", value: 1.0 },
-                  resolution: { type: "v2", value: new THREE.Vector2() }
-              };
+        .button .icon .confetti {
+            position: absolute;
+            left: 17px;
+            bottom: 9px;
+        }
 
-              var material = new THREE.ShaderMaterial( {
-                  uniforms: uniforms,
-                  vertexShader: document.getElementById( 'vertexShader' ).textContent,
-                  fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-              } );
+        .button .icon .confetti svg {
+            width: 18px;
+            height: 16px;
+            display: block;
+            stroke-width: 1px;
+            fill: none;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+        }
 
-              var mesh = new THREE.Mesh( geometry, material );
-              scene.add( mesh );
+        .button .icon .confetti svg * {
+            transition: stroke-dashoffset 0.2s;
+            stroke-dasharray: 15 20;
+            stroke-dashoffset: var(--stroke-dashoffset, 0);
+            stroke: var(--stroke-all, var(--stroke, var(--confetti-2)));
+        }
 
-              renderer = new THREE.WebGLRenderer();
-              renderer.setPixelRatio( window.devicePixelRatio );
+        .button .icon .confetti svg *:nth-child(2) {
+            --stroke: var(--confetti-3);
+        }
 
-              container.appendChild( renderer.domElement );
+        .button .icon .confetti svg *:nth-child(3) {
+            --stroke: var(--confetti-1);
+        }
 
-              onWindowResize();
-              window.addEventListener( 'resize', onWindowResize, false );
+        .button .icon .confetti .emitter {
+            position: absolute;
+            left: 4px;
+            bottom: 4px;
+            pointer-events: none;
+        }
 
-          }
+        .button .icon .confetti .emitter div {
+            width: 4px;
+            height: 4px;
+            margin: -2px 0 0 -2px;
+            border-radius: 1px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform-style: preserve-3d;
+            background: var(--confetti-all, var(--b, none));
+        }
 
-          function onWindowResize( event ) {
-              renderer.setSize( window.innerWidth, window.innerHeight );
-              uniforms.resolution.value.x = renderer.domElement.width;
-              uniforms.resolution.value.y = renderer.domElement.height;
-          }
+        .button .icon .confetti i {
+            width: 4px;
+            height: 4px;
+            display: block;
+            transform: scale(var(--confetti-scale, 0.5));
+            position: absolute;
+            transition: transform 0.25s;
+            left: var(--left, -1px);
+            top: var(--top, 3px);
+            border-radius: var(--border-radius, 1px);
+            background: var(--confetti-background, var(--confetti-3));
+        }
 
-          function animate() {
-              requestAnimationFrame( animate );
-              render();
-          }
+        .button .icon .confetti i:nth-child(2) {
+            --left: 9px;
+            --top: -1px;
+            --border-radius: 2px;
+            --confetti-background: var(--confetti-4);
+        }
 
-          function render() {
-              uniforms.time.value += 0.05;
-              renderer.render( scene, camera );
-          }
-</script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"></script>
+        .button .icon .confetti i:nth-child(3) {
+            --left: 5px;
+            --top: 3px;
+            --confetti-background: var(--confetti-1);
+        }
 
-      <script id="vertexShader" type="x-shader/x-vertex">
-          void main() {
-              gl_Position = vec4( position, 1.0 );
-          }
-      </script>
-      <script id="fragmentShader" type="x-shader/x-fragment">
-#ifdef GL_ES
-precision mediump float;
-#endif
+        .button .icon .confetti i:nth-child(4) {
+            --left: 10px;
+            --top: 14px;
+            --confetti-background: var(--confetti-2);
+        }
 
-#extension GL_OES_standard_derivatives : enable
+        .button .icon .confetti i:nth-child(5) {
+            --left: 9px;
+            --top: 7px;
+            --confetti-background: var(--confetti-4);
+        }
 
-uniform float time;
-uniform vec2 mouse;
-uniform vec2 resolution;
-      float noise(vec2 p) {
-        p=(p);
-        return fract(sin(p.x*45.11+p.y*97.23)*878.73+733.17)*2.0-1.0;
-      }        
+        .button .icon .confetti i:nth-child(6) {
+            --left: 6px;
+            --top: 8px;
+            --border-radius: 2px;
+            --confetti-background: var(--confetti-2);
+        }
 
-//参考: http://glslsandbox.com/e#65924.0
+        .button .icon .cannon {
+            position: relative;
+            width: 24px;
+            height: 14px;
+            transform: translate(0, 3px) rotate(-45deg);
+            filter: drop-shadow(-2px 2px 2px var(--cannon-shadow));
+        }
 
-void main( void ){
+        .button .icon .cannon:before,
+        .button .icon .cannon:after {
+            content: "";
+            display: block;
+            height: 14px;
+        }
+
+        .button .icon .cannon:before {
+            background: linear-gradient(var(--cannon-dark), var(--cannon-light) 50%, var(--cannon-dark));
+            width: 100%;
+            -webkit-clip-path: polygon(25px -1px, 0 52%, 25px 15px);
+            clip-path: polygon(25px -1px, 0 52%, 25px 15px);
+        }
+
+        .button .icon .cannon:after {
+            width: 6px;
+            position: absolute;
+            right: -3px;
+            top: 0;
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 0.5px var(--cannon-light);
+            background: linear-gradient(90deg, var(--cannon-dark), var(--cannon-light));
+        }
+
+        .button.white {
+            --background: #fff;
+            --color: #1E2235;
+            --border: #E1E6F9;
+            --shadow: none;
+            --cannon-dark: #103FC5;
+            --cannon-light: #275EFE;
+            --cannon-shadow: rgba(0, 9, 61, 0.2);
+        }
+
+        .button.white:before {
+            box-shadow: inset 0 0 0 1px var(--border);
+        }
+
+        .button.grey {
+            --background: #404660;
+            --cannon-shadow: rgba(13, 15, 24, 0.2);
+            --cannon-dark: #D1D6EE;
+            --cannon-light: #FFFFFF;
+        }
+
+        html {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        * {
+            box-sizing: inherit;
+        }
+
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            font-family: "Inter", Arial;
+            justify-content: center;
+            align-items: center;
+            background: #F6F8FF;
+        }
+
+        body .button {
+            margin: 0 12px;
+        }
+
+        body .dribbble {
+            position: fixed;
+            display: block;
+            right: 20px;
+            bottom: 20px;
+        }
+
+        body .dribbble img {
+            display: block;
+            height: 28px;
+        }
+
+        body .twitter {
+            position: fixed;
+            display: block;
+            right: 64px;
+            bottom: 14px;
+        }
+
+        body .twitter svg {
+            width: 32px;
+            height: 32px;
+            fill: #1da1f2;
+        }
+    </style>
+    <style>
+        /* CSS styles here */
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background-color: #FFF;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            height: 100%;
+        }
+
+        #myCanvas {
+            position: absolute;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        #myCanvas canvas {
+            position: absolute;
+            display: block;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        #overlay {
+            position: absolute;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        p {
+            color: #ffffff;
+        }
+
+        .link {
+            color: #000;
+            background: #FFF;
+            mix-blend-mode: exclusion;
+            font-size: 12px;
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+        }
+
+        .link a {
+            text-decoration: underline;
+            font-size: 10px;
+            color: #000;
+        }
+
+        .prismcat {
+            position: absolute;
+            display: none;
+            z-index: 999;
+            top: 0px;
+            left: 0px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.6/gsap.min.js"></script>
+    <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/Physics2DPlugin3.min.js"></script>
+</head>
+
+<body>
+
+    <div id="overlay">
+        <p class="h1">WHAT IS PRISMACAT?</p>
+        <p><small>clik me</small></p>
+        <div class="link">
+            <small>
+                <a href="https://soundcloud.com/ma-suwa/chorus_a-vy1" target="_blank">[musik credid]</a>
+            </small>
+        </div>
+    </div>
+
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);display:none;z-index:999;width:100%;text-align:center;"
+        id="prismcat">
+        <img src="./prismcat.webp" style="width:200px;margin-left:auto; margin-right:auto;">
+        <div style="background-color: white;"></div>
+        <h1 style="color:white">PRISMCAT welcomes u</h1>
+        <h3 style="color:white">no fret</h3>
+        <h4 style="color:white">just enjoy</h4>
+        <h4 style="color:white">all your worries will be gone!</h4>
+        <h3 style="color:white">hold 4 radyium</h3>
+        <div>
+            <button class="button" style="height:150px;" href="">
+            <div class="icon">
+                <div class="cannon"></div>
+                <div class="confetti">
+                    <svg viewBox="0 0 18 16">
+                        <polyline points="1 10 4 7 4 5 6 1" />
+                        <path d="M4,13 C5.33333333,9 7,7 9,7 C11,7 12.3340042,6 13.0020125,4" />
+                        <path
+                            d="M6,15 C7.83362334,13.6666667 9.83362334,12.6666667 12,12 C14.1663767,11.3333333 15.8330433,9.66666667 17,7" />
+                    </svg>
+                    <i></i><i></i><i></i><i></i><i></i><i></i>
+                    <div class="emitter"></div>
+                </div>
+            </div>
+            <span>PCAT IS BEST</span>
+        </button>
+        </div>
         
-    vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
-          
-    vec2 fMosaicScal = vec2(2.0,20.0);
-    vec2 vScreenSize = vec2(resolution.x,resolution.y);
-    
-    vec4 o = gl_FragColor;    
-    vec3 u = normalize(vec3(2.0*gl_FragCoord.xy-resolution.xy,resolution.xy.x))*1.2;
-        
-    u.x = floor(u.x * vScreenSize.x / fMosaicScal.x) / (vScreenSize.x / fMosaicScal.x);
-    u.y = floor(u.y * vScreenSize.y / fMosaicScal.y) / (vScreenSize.y / fMosaicScal.y);
-    u.z = floor(u.z * vScreenSize.y / fMosaicScal.y) / (vScreenSize.y / fMosaicScal.y);     
-   
-      
-    for(float i=0.;i<4.;i++){
-        u.y+=abs(cos(u.y*i*0.1)*.1);
-        u.z+=abs(cos(u.x*u.y-time*.05));
-        u+=abs(cos(u*i*0.1)*.1);
-        o=max(o,abs(cos(3.*dot(u,u)+vec4(.1,1.0,1.6,1.0))));     
+
+    </div>
+
+    <div id="myCanvas">
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;// uv: ShaderMaterialで補完される vec2 型(xy)の変数。テクスチャ座標のこと。
+      gl_Position = vec4( position, 1.0 );
     }
-        
+  </script>
 
-   
-      	
-	gl_FragColor = o;
-}
+    <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform vec2 u_mouse;
+    uniform float u_radius;
+    uniform float u_scrollY;
 
-      </script>
-  </body>
+    uniform float u_volume;//光の強さ
+
+    uniform sampler2D uTex;
+
+    float random (in float x) {
+      return fract(sin(x)*1e4);
+    }
+    float random (vec2 st) {
+      return fract(sin(dot(st.xy,
+                            vec2(158,78.233)))*
+          43758.5453123);
+    }
+    
+
+    void main() {
+      /************************/
+      //画像解像度 (縦横が2の累乗サイズ推奨)
+      //https://qiita.com/watabo_shi/items/2fc671f2147e799787f9
+      /************************/
+      vec2 imageResolution = vec2(1024.0, 1024.0);
+
+      /************************/
+      //windowサイズいっぱいに広げたPlaneのテクスチャにbackground-size:coverのような挙動をさせる。
+      //https://qiita.com/ykob/items/4ede3cb11684c8a403f8 
+      /************************/
+      vec2 ratio = vec2(
+        min((u_resolution.x / u_resolution.y) / (imageResolution.x / imageResolution.y), 1.0),
+        min((u_resolution.y / u_resolution.x) / (imageResolution.y / imageResolution.x), 1.0)
+      );
+      vec2 uv = vec2(
+          vUv.x * ratio.x + (1.0 - ratio.x) * 0.7,
+          vUv.y * ratio.y + (1.0 - ratio.y) * 0.2
+      );
+
+      float d = dot(uv,uv);
+      float a = atan(uv.y,uv.x);
+
+      float aspect = u_resolution.x / u_resolution.y;
+
+      vec2 center = vec2( u_mouse.x, u_mouse.y );// アスペクト補正したマウス座標
+      float radius = u_volume+(center.x+center.y)*0.001;
+      float r =  u_volume+(center.x+center.y)*(0.5+u_volume);
+      float lightness = radius / length( uv - center );
+      vec3 light = vec3(0.0);
+      for(int j = 0; j < 3; j++){
+        for(int i=0; i < 5; i++){
+          light[j] += radius / abs(fract(float(r) - float(j*j)*0.01) - length(uv - center) + random(uv+u_time)*u_volume*2.0);
+        }
+      }
+      vec3 color = vec3(random(uv*u_time*d)*0.2, -uv.x*uv.y*d, uv.x*uv.y);      
+      //vec3 color = texture2D( uTex, uv).rgb;       
+      gl_FragColor = vec4( color+light, 1.0 );
+    }
+  </script>
+
+    <script>
+        class Audio {
+            constructor(soundUrl) {
+                this.listener = new THREE.AudioListener();
+                const audio = new THREE.Audio(this.listener);
+                this.audioLoader = new THREE.AudioLoader();
+                this.audioLoader.load(soundUrl, function (buffer) {
+                    audio.setBuffer(buffer);
+                    audio.setLoop(true);
+                    audio.setVolume(1.0);
+                }, function (xhr) {
+                    if (xhr.loaded / xhr.total * 100 === 100) {
+                        setTimeout(() => {
+                            document.getElementById('overlay').style.display = "block";
+                        }, 1000);
+                    }
+                }, function (err) {
+                    console.log('An error happened');
+                });
+                this.soundPlay = () => {
+                    audio.play();
+                };
+                this.analyser = new THREE.AudioAnalyser(audio, 256);
+            }
+
+            update() {
+                this.FrequencyData = this.analyser.getFrequencyData();
+                this.AverageFrequency = this.analyser.getAverageFrequency();
+            }
+        }
+
+        class Canvas {
+            constructor() {
+                this.scrollY = 0;
+                this.mouse = new THREE.Vector2(0.5, 0.5);
+                this.targetRadius = 0.05;
+                this.w = window.innerWidth;
+                this.h = window.innerHeight;
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(this.w, this.h);
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.renderer.setClearColor(0xEEEEEE);
+                const container = document.getElementById("myCanvas");
+                container.appendChild(this.renderer.domElement);
+                const fov = 60;
+                const fovRad = (fov / 4) * (Math.PI / 180);
+                const dist = (this.h / 2) / Math.tan(fovRad);
+                this.camera = new THREE.PerspectiveCamera(fov, this.w / this.h, 1, dist * 2);
+                this.camera.position.z = dist;
+                this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.Fog(0xCCCCCC, 0, 2000);
+                this.pointLight = new THREE.PointLight(0xffffff);
+                this.pointLight.position.set(40, 40, 0);
+                this.scene.add(this.pointLight);
+                this.ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.9);
+                this.scene.add(this.ambientLight);
+                const loader = new THREE.TextureLoader();
+                this.texture = loader.load('./prismcat.webp');
+                const plane = new THREE.PlaneGeometry(2, 2, 10, 10);
+                this.uniforms = {
+                    "u_time": { value: 1.0 },
+                    "u_resolution": { type: "v2", value: new THREE.Vector2() },
+                    "u_mouse": { value: new THREE.Vector2() },
+                    "u_scrollY": { value: 0.0 },
+                    "u_radius": { value: this.targetRadius },
+                    "uTex": { value: this.texture },
+                    "u_volume": { value: 0.0 }
+                };
+                const plane_mat = new THREE.ShaderMaterial({
+                    uniforms: this.uniforms,
+                    vertexShader: document.getElementById('vertexShader').textContent,
+                    fragmentShader: document.getElementById('fragmentShader').textContent,
+                    wireframe: false
+                });
+                this.plane = new THREE.Mesh(plane, plane_mat);
+                this.scene.add(this.plane);
+                const overlay = document.getElementById('overlay');
+                const url = 'https://dl.dropbox.com/s/c6sou8pfw168mgg/sound.m4a?dl=0';
+                this.audio1 = new Audio(url);
+                overlay.addEventListener('click', e => {
+                    document.getElementById('prismcat').style.display = "block";
+                    overlay.remove();
+                    this.audio1.soundPlay();
+                    this.render();
+                });
+            }
+
+            render() {
+                requestAnimationFrame(() => { this.render(); });
+                this.uniforms.u_time.value += 1;
+                this.uniforms.u_mouse.value.lerp(this.mouse, 0.05);
+                this.audio1.update();
+                this.uniforms.u_volume.value = this.audio1.AverageFrequency * 0.0003;
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            mouseMoved(x, y) {
+                this.mouse.x = x / this.w;
+                this.mouse.y = 1.0 - (y / this.h);
+            }
+
+            scrolled(y) {
+                this.scrollY = y;
+            }
+
+            resized() {
+                this.w = window.innerWidth;
+                this.h = window.innerHeight;
+                this.renderer.setSize(this.w, this.h);
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.camera.aspect = this.w / this.h;
+                this.camera.updateProjectionMatrix();
+                this.uniforms.u_resolution.value.set(this.renderer.domElement.width, this.renderer.domElement.height);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', function () {
+            const canvas = new Canvas();
+            canvas.scrolled(window.scrollY);
+
+            window.addEventListener('mousemove', e => canvas.mouseMoved(e.clientX, e.clientY));
+
+            window.addEventListener('touchmove', e => {
+                e.preventDefault();
+                var touch = e.touches[0] || e.changedTouches[0];
+                canvas.mouseMoved(touch.clientX, touch.clientY);
+            }, { passive: false });
+
+            window.addEventListener('scroll', e => canvas.scrolled(window.scrollY));
+            window.addEventListener('resize', e => canvas.resized());
+        });
+    </script>
+    <script>
+        gsap.registerPlugin(Physics2DPlugin);
+
+        document.querySelectorAll('.button').forEach(button => {
+
+            const bounding = button.getBoundingClientRect()
+
+            button.addEventListener('mousemove', e => {
+
+                let dy = (e.clientY - bounding.top - bounding.height / 2) / -1
+                let dx = (e.clientX - bounding.left - bounding.width / 2) / 10
+
+                dy = dy > 10 ? 10 : (dy < -10 ? -10 : dy);
+                dx = dx > 4 ? 4 : (dx < -4 ? -4 : dx);
+
+                button.style.setProperty('--rx', dy);
+                button.style.setProperty('--ry', dx);
+
+            });
+
+            button.addEventListener('mouseleave', e => {
+
+                button.style.setProperty('--rx', 0)
+                button.style.setProperty('--ry', 0)
+
+            });
+
+            button.addEventListener('click', e => {
+                button.classList.add('success');
+                gsap.to(button, {
+                    '--icon-x': -3,
+                    '--icon-y': 3,
+                    '--z-before': 0,
+                    duration: .2,
+                    onComplete() {
+                        particles(button.querySelector('.emitter'), 100, -4, 6, -80, -50);
+                        gsap.to(button, {
+                            '--icon-x': 0,
+                            '--icon-y': 0,
+                            '--z-before': -6,
+                            duration: 1,
+                            ease: 'elastic.out(1, .5)',
+                            onComplete() {
+                                button.classList.remove('success');
+                            }
+                        });
+                    }
+                });
+            });
+
+        });
+
+        function particles(parent, quantity, x, y, minAngle, maxAngle) {
+            let colors = [
+                '#FFFF04',
+                '#EA4C89',
+                '#892AB8',
+                '#4AF2FD',
+            ];
+            for (let i = quantity - 1; i >= 0; i--) {
+                let angle = gsap.utils.random(minAngle, maxAngle),
+                    velocity = gsap.utils.random(70, 140),
+                    dot = document.createElement('div');
+                dot.style.setProperty('--b', colors[Math.floor(gsap.utils.random(0, 4))]);
+                parent.appendChild(dot);
+                gsap.set(dot, {
+                    opacity: 0,
+                    x: x,
+                    y: y,
+                    scale: gsap.utils.random(.4, .7)
+                });
+                gsap.timeline({
+                    onComplete() {
+                        dot.remove();
+                    }
+                }).to(dot, {
+                    duration: .05,
+                    opacity: 1
+                }, 0).to(dot, {
+                    duration: 1.8,
+                    rotationX: `-=${gsap.utils.random(720, 1440)}`,
+                    rotationZ: `+=${gsap.utils.random(720, 1440)}`,
+                    physics2D: {
+                        angle: angle,
+                        velocity: velocity,
+                        gravity: 120
+                    }
+                }, 0).to(dot, {
+                    duration: 1,
+                    opacity: 0
+                }, .8);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
